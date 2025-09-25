@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "hypixel_auto_complete",
+  "name": "Hypixel Autocomplete",
+  "description": "Autocomplete for Hypixel chat commands.",
+  "version": "${version}",
+  "environment": "client",
+  "mixins": [
+    "mixins.hypixel_auto_complete.json"
+  ],
+  "depends": {
+    "fabric-language-kotlin": ">=1.13.3+kotlin.2.1.21"
+  },
+  "entrypoints": {
+    "modmenu": [
+      "club.sk1er.mods.hypixelautocomplete.ModMenuApiImpl"
+    ]
+  }
+}

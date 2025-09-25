@@ -1,0 +1,18 @@
+modLoader="javafml"
+loaderVersion="[33,)"
+license="GPL v3.0"
+
+[[mods]]
+modId="hypixel_auto_complete"
+version="${file.jarVersion}"
+displayName="Hypixel Auto Complete"
+displayURL="https://sk1er.club/mods/hypixel_auto_complete"
+description="Auto completes player names on Hypixel."
+
+[[mixins]]
+config="mixins.hypixel_auto_complete.json"
+
+[[dependencies.hypixel_auto_complete]]
+modId="kotlinforforge"
+mandatory=true
+versionRange="[0,)"
