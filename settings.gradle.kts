@@ -15,14 +15,7 @@ pluginManagement {
 }
 
 listOf(
-    "1.19.2-fabric",
-    "1.19.2-forge",
-    "1.20.6-fabric",
-    "1.20.6-forge",
-//    "1.20.6-neoforge",
     "1.21.5-fabric",
-    "1.21.5-forge",
-//    "1.21.5-neoforge",
 ).forEach { version ->
     include(":$version")
     project(":$version").apply {
