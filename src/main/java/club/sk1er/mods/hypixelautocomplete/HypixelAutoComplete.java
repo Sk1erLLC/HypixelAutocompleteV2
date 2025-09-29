@@ -1,5 +1,6 @@
 package club.sk1er.mods.hypixelautocomplete;
 
+
 //#if FORGE
 //$$ import net.minecraftforge.fml.common.Mod;
 //$$ import net.minecraftforge.client.ConfigScreenHandler;
@@ -8,6 +9,7 @@ package club.sk1er.mods.hypixelautocomplete;
 //$$ import net.minecraftforge.fml.ModLoadingContext;
 //#endif
 //$$ @Mod(HypixelAutoComplete.MOD_ID)
+//#endif
 public class HypixelAutoComplete {
     public static final String MOD_ID = "hypixel_auto_complete";
     public static final String MOD_VERSION = "2.0";
@@ -26,4 +28,6 @@ public class HypixelAutoComplete {
     //$$         )
     //$$     );
     //$$ }
+    //#endif
+
 }

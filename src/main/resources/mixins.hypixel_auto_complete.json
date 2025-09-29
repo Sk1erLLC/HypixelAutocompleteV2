@@ -4,5 +4,8 @@
   "package": "club.sk1er.mods.hypixelautocomplete.mixin",
   "plugin": "club.sk1er.mods.hypixelautocomplete.mixin.plugin.MixinPlugin",
   "refmap": "mixins.scrollabletooltips.refmap.json",
-  "client": []
+  "client": [
+    "ChatInputSuggestorMixin",
+    "MixinChatScreen"
+  ]
 }
