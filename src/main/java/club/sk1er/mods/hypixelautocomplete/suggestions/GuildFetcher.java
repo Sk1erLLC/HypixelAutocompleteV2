@@ -26,12 +26,6 @@ public final class GuildFetcher {
     }
 
     public static Set<String> fetch(MinecraftClient minecraft) {
-
-        ServerInfo serverInfo = minecraft.getCurrentServerEntry();
-        if (serverInfo == null || serverInfo.address == null) {
-            return Set.of();
-        }
-
         UUID uuid = minecraft.getGameProfile().getId();
         HttpURLConnection connection = null;
         try {

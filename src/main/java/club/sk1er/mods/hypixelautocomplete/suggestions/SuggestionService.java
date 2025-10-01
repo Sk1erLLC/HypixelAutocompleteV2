@@ -36,7 +36,6 @@ public class SuggestionService {
     );
 
     private final Logger logger = LogManager.getLogger("HypixelAutoComplete");
-    public static final SuggestionService INSTANCE = new SuggestionService();
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "HypixelAutoComplete-Worker");
         thread.setDaemon(true);

@@ -11,11 +11,10 @@ import java.util.Set;
 public class SuggestionHistoryManager {
 
 
-    public static SuggestionHistoryManager INSTANCE = new SuggestionHistoryManager();
     private final Path configFile = MinecraftClient.getInstance().runDirectory.toPath().resolve("config/hypixel-autocomplete/history.json");
     private final Logger logger = LogManager.getLogger("HypixelAutoComplete");
 
-    private SuggestionHistoryManager() {
+    public SuggestionHistoryManager() {
         // Add shutdown hook to save config on exit
     }
 
@@ -41,6 +40,7 @@ public class SuggestionHistoryManager {
         // Save current state to config. First, write all data to a temp file, then move it over the original file.
     }
 
+    // Connect this to SuggestionManager to get suggestions
     public Set<String> getSuggestions() {
         return Collections.emptySet();
     }

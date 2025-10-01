@@ -1,5 +1,6 @@
 package club.sk1er.mods.hypixelautocomplete.mixin;
 
+import club.sk1er.mods.hypixelautocomplete.HypixelAutoComplete;
 import club.sk1er.mods.hypixelautocomplete.suggestions.SuggestionService;
 import com.mojang.brigadier.suggestion.Suggestions;
 import net.minecraft.client.MinecraftClient;
@@ -34,12 +35,12 @@ public abstract class ChatInputSuggestorMixin {
         String input = this.textField.getText();
         int cursor = this.textField.getCursor();
 
-        CompletableFuture<Suggestions> guildSuggestions = SuggestionService.INSTANCE.buildSuggestions(input, cursor);
-        if (guildSuggestions == null) {
+        CompletableFuture<Suggestions> suggestions = HypixelAutoComplete.instance.getSuggestionService().buildSuggestions(input, cursor);
+        if (suggestions == null) {
             return;
         }
 
-        this.pendingSuggestions = guildSuggestions;
+        this.pendingSuggestions = suggestions;
         this.pendingSuggestions.thenRun(() -> {
             if (this.pendingSuggestions.isDone()) {
                 this.showCommandSuggestions();

@@ -1,6 +1,6 @@
 package club.sk1er.mods.hypixelautocomplete.mixin;
 
-import club.sk1er.mods.hypixelautocomplete.suggestions.SuggestionHistoryManager;
+import club.sk1er.mods.hypixelautocomplete.HypixelAutoComplete;
 import net.minecraft.client.gui.screen.ChatScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,6 +12,6 @@ public class MixinChatScreen {
 
     @Inject(method = "sendMessage", at = @At("HEAD") )
     private void onSendMessage(String message, boolean addToHistory, CallbackInfo ci) {
-        SuggestionHistoryManager.INSTANCE.capture(message);
+        HypixelAutoComplete.instance.getSuggestionHistoryManager().capture(message);
     }
 }

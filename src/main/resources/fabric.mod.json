@@ -11,6 +11,9 @@
   "depends": {
   },
   "entrypoints": {
+    "main": [
+      "club.sk1er.mods.hypixelautocomplete.HypixelAutoComplete"
+    ],
     "modmenu": [
     ]
   }
