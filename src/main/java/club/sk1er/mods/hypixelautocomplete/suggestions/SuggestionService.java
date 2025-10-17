@@ -7,11 +7,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,8 +17,57 @@ public class SuggestionService {
 
     // Commands that accept multiple usernames
     private static final List<String> PARTY_COMMANDS = List.of(
+        "/p invite ",
+        "/p challenge ",
+        "/p promote ",
+        "/p remove ",
+        "/p kick ",
+        "/p accept ",
+        "/p kickoffline ",
+        "/p leave ",
+        "/p disband ",
+        "/p private ",
+        "/p home ",
+        "/p warp ",
+        "/p list ",
+        "/p mute ",
+        "/p ",
         "/party invite ",
-        "/p invite "
+        "/party challenge ",
+        "/party promote ",
+        "/party remove ",
+        "/party kick ",
+        "/party accept ",
+        "/party kickoffline ",
+        "/party leave ",
+        "/party disband ",
+        "/party private ",
+        "/party home ",
+        "/party warp ",
+        "/party list ",
+        "/party mute ",
+        "/party "
+    );
+
+    // Party commands to exclude from saved recommendations with a username
+    private static final List<String> PARTY_COMMANDS_EXCLUDE_USER = List.of(
+            "invite",
+            "challenge",
+            "promote",
+            "remove",
+            "kick",
+            "accept"
+    );
+    // Party commands to exclude from saved recommendations without a username
+    private static final List<String> PARTY_COMMANDS_EXCLUDE_NOUSER = List.of(
+            "kickoffline",
+            "leave",
+            "disband",
+            "private",
+            "home",
+            "warp",
+            "list",
+            "mute"
     );
 
     // Commands that accept a single username
@@ -34,6 +79,11 @@ public class SuggestionService {
         "/whisper ",
         "/boop "
     );
+
+    public static List<String> getPartyCommands() { return PARTY_COMMANDS; }
+    public static List<String> getPartyCommandsExcludeUser() { return PARTY_COMMANDS_EXCLUDE_USER; }
+    public static List<String> getPartyCommandsExcludeNoUser() { return PARTY_COMMANDS_EXCLUDE_NOUSER; }
+    public static List<String> getWhisperCommands() { return WHISPER_COMMANDS; }
 
     private final Logger logger = LogManager.getLogger("HypixelAutoComplete");
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
@@ -77,7 +127,29 @@ public class SuggestionService {
             }
         }
 
-        List<String> members = getGuildMembers();
+        String[] split = matchedCommand.split(" ");
+        String splitCommand = split.length > 1 ? split[1] : "";
+
+        // if command shouldn't be followed by a username (/p leave, etc)
+        if (!splitCommand.isEmpty() && PARTY_COMMANDS_EXCLUDE_NOUSER.contains(splitCommand)) {
+            return null;
+        }
+
+        List<String> members = new ArrayList<>(getGuildMembers());
+
+        Set<String> suggestions = SuggestionHistoryManager.getSuggestions();
+        for (String user : suggestions) {
+            if (!members.contains(user)) {
+                members.add(user);
+            }
+        }
+
+        // For party commands, add potential second args that are not usernames
+        if (PARTY_COMMANDS.contains(matchedCommand) && !PARTY_COMMANDS_EXCLUDE_USER.contains(splitCommand) && !PARTY_COMMANDS_EXCLUDE_NOUSER.contains(splitCommand)) {
+            members.addAll(PARTY_COMMANDS_EXCLUDE_USER);
+            members.addAll(PARTY_COMMANDS_EXCLUDE_NOUSER);
+        }
+
         if (members.isEmpty()) {
             return null;
         }
@@ -136,7 +208,7 @@ public class SuggestionService {
                 return cmd;
             }
         }
-        
+
         return null;
     }
 
