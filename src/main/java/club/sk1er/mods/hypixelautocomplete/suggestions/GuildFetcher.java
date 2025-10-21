@@ -26,7 +26,11 @@ public final class GuildFetcher {
     }
 
     public static Set<String> fetch(MinecraftClient minecraft) {
+        //#if MC<=12107
         UUID uuid = minecraft.getGameProfile().getId();
+        //#else
+        //$$ UUID uuid = minecraft.getGameProfile().id();
+        //#endif
         HttpURLConnection connection = null;
         try {
             String format = String.format(API_TEMPLATE, uuid);
