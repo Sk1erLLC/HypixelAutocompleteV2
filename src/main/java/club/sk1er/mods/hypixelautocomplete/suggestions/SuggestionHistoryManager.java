@@ -35,7 +35,7 @@ public class SuggestionHistoryManager {
         loadConfig();
 
         // Shutdown hook to save config on exit
-        Thread printingHook = new Thread(() -> saveConfig());
+        Thread printingHook = new Thread(this::saveConfig);
         Runtime.getRuntime().addShutdownHook(printingHook);
     }
 
@@ -53,7 +53,12 @@ public class SuggestionHistoryManager {
 
         String[] split = message.split(" ");
 
+        if (split.length < 2) {
+            return;
+        }
+
         if (SuggestionService.getPartyCommands().contains(split[0] + " ")) {
+
             // if command is a non-username party command (leave, disband, etc)
             if (SuggestionService.getPartyCommandsExcludeNoUser().contains(split[1])) {
                 return;
@@ -80,13 +85,19 @@ public class SuggestionHistoryManager {
         File historyFile = new File (historyFilePath.toString());
 
         try {
+            if (!historyFile.exists()) {
+                return;
+            }
             Scanner scanner = new Scanner(historyFile);
 
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] split = line.split(" ");
-
-                suggestions.put(split[0], Integer.parseInt(split[1]));
+                if (split.length == 2) {
+                    suggestions.put(split[0], Integer.parseInt(split[1]));
+                } else {
+                    logger.error("Malformed line in history file: {}", line);
+                }
             }
 
             scanner.close();
