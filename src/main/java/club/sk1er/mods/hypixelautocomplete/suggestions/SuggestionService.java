@@ -12,45 +12,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 public class SuggestionService {
 
-    // Commands that accept multiple usernames
-    private static final List<String> PARTY_COMMANDS = List.of(
-        "/p invite ",
-        "/p challenge ",
-        "/p promote ",
-        "/p remove ",
-        "/p kick ",
-        "/p accept ",
-        "/p kickoffline ",
-        "/p leave ",
-        "/p disband ",
-        "/p private ",
-        "/p home ",
-        "/p warp ",
-        "/p list ",
-        "/p mute ",
-        "/p ",
-        "/party invite ",
-        "/party challenge ",
-        "/party promote ",
-        "/party remove ",
-        "/party kick ",
-        "/party accept ",
-        "/party kickoffline ",
-        "/party leave ",
-        "/party disband ",
-        "/party private ",
-        "/party home ",
-        "/party warp ",
-        "/party list ",
-        "/party mute ",
-        "/party "
-    );
-
     // Party commands to exclude from saved recommendations with a username
-    private static final List<String> PARTY_COMMANDS_EXCLUDE_USER = List.of(
+    private static final List<String> PARTY_COMMANDS_USER = List.of(
             "invite",
             "challenge",
             "promote",
@@ -59,7 +26,7 @@ public class SuggestionService {
             "accept"
     );
     // Party commands to exclude from saved recommendations without a username
-    private static final List<String> PARTY_COMMANDS_EXCLUDE_NOUSER = List.of(
+    private static final List<String> PARTY_COMMANDS_NOUSER = List.of(
             "kickoffline",
             "leave",
             "disband",
@@ -69,6 +36,16 @@ public class SuggestionService {
             "list",
             "mute"
     );
+    
+    private static final List<String> PARTY_COMMAND_PREFIXES = List.of("/p ", "/party ");
+
+    // All party commands (both with and without username, plus the empty string)
+    private static final List<String> PARTY_COMMANDS = PARTY_COMMAND_PREFIXES.stream()
+            .flatMap(prefix -> Stream.concat(
+                    Stream.concat(PARTY_COMMANDS_USER.stream(), PARTY_COMMANDS_NOUSER.stream()),
+                    Stream.of("") // include empty command
+            ).map(cmd -> prefix + cmd + (cmd.isEmpty() ? "" : " ")))
+            .toList();
 
     // Commands that accept a single username
     private static final List<String> WHISPER_COMMANDS = List.of(
@@ -81,8 +58,8 @@ public class SuggestionService {
     );
 
     public static List<String> getPartyCommands() { return PARTY_COMMANDS; }
-    public static List<String> getPartyCommandsExcludeUser() { return PARTY_COMMANDS_EXCLUDE_USER; }
-    public static List<String> getPartyCommandsExcludeNoUser() { return PARTY_COMMANDS_EXCLUDE_NOUSER; }
+    public static List<String> getPartyCommandsUser() { return PARTY_COMMANDS_USER; }
+    public static List<String> getPartyCommandsExcludeNoUser() { return PARTY_COMMANDS_NOUSER; }
     public static List<String> getWhisperCommands() { return WHISPER_COMMANDS; }
 
     private final Logger logger = LogManager.getLogger("HypixelAutoComplete");
@@ -128,26 +105,21 @@ public class SuggestionService {
         }
 
         String[] split = matchedCommand.split(" ");
+
         String splitCommand = split.length > 1 ? split[1] : "";
 
         // if command shouldn't be followed by a username (/p leave, etc)
-        if (!splitCommand.isEmpty() && PARTY_COMMANDS_EXCLUDE_NOUSER.contains(splitCommand)) {
+        if (PARTY_COMMANDS_NOUSER.contains(splitCommand)) {
             return null;
         }
 
-        List<String> members = new ArrayList<>(getGuildMembers());
-
-        Set<String> suggestions = SuggestionHistoryManager.getSuggestions();
-        for (String user : suggestions) {
-            if (!members.contains(user)) {
-                members.add(user);
-            }
-        }
+        Set<String> members = new HashSet<>(getGuildMembers());
+        members.addAll(SuggestionHistoryManager.getSuggestions());
 
         // For party commands, add potential second args that are not usernames
-        if (PARTY_COMMANDS.contains(matchedCommand) && !PARTY_COMMANDS_EXCLUDE_USER.contains(splitCommand) && !PARTY_COMMANDS_EXCLUDE_NOUSER.contains(splitCommand)) {
-            members.addAll(PARTY_COMMANDS_EXCLUDE_USER);
-            members.addAll(PARTY_COMMANDS_EXCLUDE_NOUSER);
+        if (PARTY_COMMANDS.contains(matchedCommand) && !PARTY_COMMANDS_USER.contains(splitCommand) && !PARTY_COMMANDS_NOUSER.contains(splitCommand)) {
+            members.addAll(PARTY_COMMANDS_USER);
+            members.addAll(PARTY_COMMANDS_NOUSER);
         }
 
         if (members.isEmpty()) {
@@ -236,7 +208,7 @@ public class SuggestionService {
             .thenAccept(members -> logger.log(Level.DEBUG, "Fetched {} guild members", guildMembers.get().size()));
     }
 
-    private boolean isHypixel() {
+    public static boolean isHypixel() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.getCurrentServerEntry() == null) {
             return false;

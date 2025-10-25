@@ -49,9 +49,16 @@ public class SuggestionHistoryManager {
      * purging users who have only been invited once?
      */
     public void capture(String message) {
+        if (!SuggestionService.isHypixel()) return;
+
         logger.info("Captured message: {}", message);
 
         String[] split = message.split(" ");
+
+        if (split.length < 2) {
+            logger.error("Invalid message: {}", message);
+            return;
+        }
 
         if (SuggestionService.getPartyCommands().contains(split[0] + " ")) {
             // if command is a non-username party command (leave, disband, etc)
@@ -60,7 +67,7 @@ public class SuggestionHistoryManager {
             }
 
             // if command has two non-user args (/p invite, /p transfer, etc)
-            int startIndex = SuggestionService.getPartyCommandsExcludeUser().contains(split[1]) ? 2 : 1;
+            int startIndex = SuggestionService.getPartyCommandsUser().contains(split[1]) ? 2 : 1;
             for (int i = startIndex; i < split.length; i++) {
                 // the number of times the user has been partied or messaged
                 int occurrences = suggestions.containsKey(split[i]) ? suggestions.get(split[i]) + 1 : 1;
@@ -80,11 +87,20 @@ public class SuggestionHistoryManager {
         File historyFile = new File (historyFilePath.toString());
 
         try {
+            if (!historyFile.exists()) {
+                return;
+            }
+
             Scanner scanner = new Scanner(historyFile);
 
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] split = line.split(" ");
+
+                if (split.length < 2) {
+                    logger.error("Invalid data in config file");
+                    return;
+                }
 
                 suggestions.put(split[0], Integer.parseInt(split[1]));
             }
@@ -132,7 +148,7 @@ public class SuggestionHistoryManager {
 
     // Connect this to SuggestionManager to get suggestions
     public static Set<String> getSuggestions() {
-        return suggestions.keySet();
+        return new java.util.HashSet<>(suggestions.keySet());
     }
 
 }
