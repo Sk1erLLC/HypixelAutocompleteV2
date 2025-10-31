@@ -1,5 +1,6 @@
 package club.sk1er.mods.hypixelautocomplete.suggestions;
 
+import club.sk1er.mods.hypixelautocomplete.HypixelAutoComplete;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -19,7 +20,7 @@ import java.util.UUID;
 
 public final class GuildFetcher {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
-    private static final String USER_AGENT = "Hypixel Auto Complete 2.0";
+    private static final String USER_AGENT = "Hypixel Auto Complete " + HypixelAutoComplete.MOD_VERSION;
     private static final String API_TEMPLATE = "https://api.sk1er.club/autocomplete/%s";
 
     private GuildFetcher() {
