@@ -21,7 +21,8 @@ public class SuggestionHistoryManager {
     private final Logger logger = LogManager.getLogger("HypixelAutoComplete");
 
     // Usernames player has interacted with, saved with the num interactions
-    private static HashMap<String, Integer> suggestions = new HashMap<>();
+    // Key is lowercase username, value is UsernameEntry with original casing
+    private static HashMap<String, UsernameEntry> suggestions = new HashMap<>();
 
     private Path configPath;
     private Path tempHistoryFilePath;
@@ -67,19 +68,45 @@ public class SuggestionHistoryManager {
             // if command has two non-user args (/p invite, /p transfer, etc)
             int startIndex = SuggestionService.getPartyCommandsExcludeUser().contains(split[1]) ? 2 : 1;
             for (int i = startIndex; i < split.length; i++) {
-                // the number of times the user has been partied or messaged
-                int occurrences = suggestions.containsKey(split[i]) ? suggestions.get(split[i]) + 1 : 1;
-
-                suggestions.put(split[i], occurrences);
+                captureUsername(split[i]);
             }
         } else if (SuggestionService.getWhisperCommands().contains(split[0])) {
             // single-username command
-            int occurrences = suggestions.containsKey(split[1]) ? suggestions.get(split[1]) + 1 : 1;
-
-            suggestions.put(split[1], occurrences);
+            captureUsername(split[1]);
         }
     }
 
+    /**
+     * Captures a username and stores it in the suggestions map with lowercase key
+     * For new usernames, fetches the proper casing from the Minecraft API
+     * @param username The username to capture (with original casing)
+     */
+    private void captureUsername(String username) {
+        String lowercaseKey = username.toLowerCase();
+
+        if (suggestions.containsKey(lowercaseKey)) {
+            // Username already exists, just increment the count
+            suggestions.get(lowercaseKey).incrementOccurrences();
+        } else {
+            // New username - add it with the typed casing first
+            UsernameEntry entry = new UsernameEntry(username, 1);
+            suggestions.put(lowercaseKey, entry);
+
+            // Asynchronously fetch the proper casing from Minecraft API
+            logger.info("New username '{}' detected, fetching proper casing from Minecraft API", username);
+            MinecraftAPIService.getProperUsername(username).thenAccept(properName -> {
+                if (properName != null && !properName.equals(username)) {
+                    // Update with the proper casing
+                    entry.setUsername(properName);
+                    logger.info("Updated username casing from '{}' to '{}'", username, properName);
+                    saveConfig(); // Persist the updated casing
+                }
+            }).exceptionally(throwable -> {
+                logger.error("Error fetching proper username for '{}': {}", username, throwable.getMessage());
+                return null;
+            });
+        }
+    }
 
     public void loadConfig() {
         File historyFile = new File (historyFilePath.toString());
@@ -94,7 +121,10 @@ public class SuggestionHistoryManager {
                 String line = scanner.nextLine();
                 String[] split = line.split(" ");
                 if (split.length == 2) {
-                    suggestions.put(split[0], Integer.parseInt(split[1]));
+                    String username = split[0];
+                    int occurrences = Integer.parseInt(split[1]);
+                    String lowercaseKey = username.toLowerCase();
+                    suggestions.put(lowercaseKey, new UsernameEntry(username, occurrences));
                 } else {
                     logger.error("Malformed line in history file: {}", line);
                 }
@@ -118,8 +148,9 @@ public class SuggestionHistoryManager {
         try {
             FileWriter writer = new FileWriter(tempFile);
 
-            for (Map.Entry<String, Integer> entry : suggestions.entrySet()) {
-                writer.write(entry.getKey() + " " + entry.getValue() + "\n");
+            for (Map.Entry<String, UsernameEntry> entry : suggestions.entrySet()) {
+                UsernameEntry usernameEntry = entry.getValue();
+                writer.write(usernameEntry.getUsername() + " " + usernameEntry.getOccurrences() + "\n");
             }
 
             writer.close();
@@ -142,8 +173,30 @@ public class SuggestionHistoryManager {
     }
 
     // Connect this to SuggestionManager to get suggestions
+    // Returns usernames with original casing
     public static Set<String> getSuggestions() {
-        return suggestions.keySet();
+        Set<String> usernames = new java.util.HashSet<>();
+        for (UsernameEntry entry : suggestions.values()) {
+            usernames.add(entry.getUsername());
+        }
+        return usernames;
+    }
+
+    /**
+     * Removes a username from the suggestion history (case-insensitive)
+     * @param username The username to remove
+     * @return true if the username was found and removed, false otherwise
+     */
+    public boolean removeNameFromHistory(String username) {
+        String lowercaseKey = username.toLowerCase();
+        if (suggestions.containsKey(lowercaseKey)) {
+            UsernameEntry entry = suggestions.remove(lowercaseKey);
+            saveConfig();
+            logger.info("Removed username '{}' from suggestion history", entry.getUsername());
+            return true;
+        }
+        logger.info("Username '{}' not found in suggestion history", username);
+        return false;
     }
 
 }
