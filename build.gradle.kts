@@ -39,19 +39,28 @@ dependencies {
         else -> error("Unable to determine platform")
     }
     if (platform.isFabric) {
-//        implementation(include("gg.essential:vigilance:306")!!)
-//        implementation(include("gg.essential:elementa:706")!!)
-//        modImplementation(include("gg.essential:universalcraft-${platform.mcVersionStr}-$ucPlatform:401")!!)
+        val fabricApiVersion = when (platform.mcVersion) {
+            12105 -> "0.128.2+1.21.5"
+            12106 -> "0.128.2+1.21.6"
+            12107 -> "0.129.0+1.21.7"
+            12109 -> "0.134.0+1.21.9"
+            12110 -> "0.136.0+1.21.10"
+            else -> error("Unable to determine platform")
+        }
 
-        val modMenuVersion = when (platform.mcVersion) {
+        include(modImplementation(fabricApi.module("fabric-api-base", fabricApiVersion))!!)
+        include(modImplementation(fabricApi.module("fabric-command-api-v2", fabricApiVersion))!!)
+//        modImplementation(fabricApiVersion)
+
+       val modMenuVersion = when (platform.mcVersion) {
             11902 -> "4.2.0-beta.2"
             12006 -> "10.0.0"
             12105 -> "14.0.0-rc.2"
-            12107 -> "15.0.0-rc.1"
-            12109 -> "16.0.0-rc.1"
+            12106, 12107, 12108 -> "15.0.0"
+            12109,12110 -> "16.0.0-rc.1"
             else -> error("Unable to determine version")
         }
-//        modImplementation("com.terraformersmc:modmenu:$modMenuVersion")
+        modImplementation("com.terraformersmc:modmenu:$modMenuVersion")
     } else {
         libraryInclude("gg.essential:elementa:706") {
             exclude(group = "org.jetbrains.kotlin")
