@@ -1,0 +1,5 @@
+# <26.1 (Mojang, unobfuscated) name> <1.21.11 (Yarn) name>
+# Everything Minecraft-side is remapped automatically via 1.21.11's official Mojang mappings; this file only covers
+# renames that those mappings can't see.
+# Fabric API's client command manager was renamed for 26.1 (same methods: literal, argument, getActiveDispatcher, ...).
+net.fabricmc.fabric.api.client.command.v2.ClientCommands net.fabricmc.fabric.api.client.command.v2.ClientCommandManager

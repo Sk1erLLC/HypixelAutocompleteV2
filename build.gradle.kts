@@ -1,4 +1,5 @@
 import gg.essential.gradle.util.noServerRunConfigs
+import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     kotlin("jvm")
@@ -14,7 +15,11 @@ base.archivesName.set("$modBaseName-${platform.mcVersionStr}-${platform.loaderSt
 
 loom {
     noServerRunConfigs()
-    mixin {
+}
+// 26.x (unobfuscated): no remapping, so no mixin AP / refmap.
+// (Checked outside `loom {}` because inside it `platform` resolves to Loom's own `platform` property.)
+if (!platform.isUnobfuscated) {
+    loom.mixin {
         useLegacyMixinAp = true
         defaultRefmapName.set("mixins.hypixel_auto_complete.refmap.json")
     }
@@ -45,6 +50,10 @@ dependencies {
             12107 -> "0.129.0+1.21.7"
             12109 -> "0.134.0+1.21.9"
             12110 -> "0.136.0+1.21.10"
+            12111 -> "0.141.6+1.21.11"
+            260100 -> "0.145.1+26.1"
+            260200 -> "0.161.0+26.2"
+            260300 -> "0.161.0+26.3"
             else -> error("Unable to determine platform")
         }
 
@@ -58,6 +67,10 @@ dependencies {
             12105 -> "14.0.0-rc.2"
             12106, 12107, 12108 -> "15.0.0"
             12109,12110 -> "16.0.0-rc.1"
+            12111 -> "17.0.1"
+            260100 -> "18.0.2"
+            260200 -> "20.0.3"
+            260300 -> "21.0.0"
             else -> error("Unable to determine version")
         }
         modImplementation("com.terraformersmc:modmenu:$modMenuVersion")
@@ -86,7 +99,7 @@ dependencies {
         platform.isNeoForge -> "neoforge"
         else -> error("Unable to determine platform")
     }
-    modLocalRuntime("me.djtheredstoner:DevAuth-${devAuthPlatform}:1.2.1")
+    modLocalRuntime("me.djtheredstoner:DevAuth-${devAuthPlatform}:${if (platform.isUnobfuscated) "1.2.2" else "1.2.1"}")
 }
 
 tasks {
@@ -99,11 +112,23 @@ tasks {
         archiveClassifier = null
     }
 
-    remapJar {
-        dependsOn(shadowJar)
-        mustRunAfter(shadowJar)
-        inputFile = shadowJar.get().archiveFile
-        archiveClassifier = null
+    if (platform.isUnobfuscated) {
+        // No refmap is generated without remapping; drop the reference so Mixin doesn't warn about a missing file.
+        processResources {
+            filesMatching("mixins.hypixel_auto_complete.json") {
+                filter { line: String -> if (line.trimStart().startsWith("\"refmap\"")) "" else line }
+            }
+        }
+    }
+
+    // Unobfuscated (26.x) Loom has no remapJar task; the plain `jar` is the release artifact there.
+    if (!platform.isUnobfuscated) {
+        named<RemapJarTask>("remapJar") {
+            dependsOn(shadowJar)
+            mustRunAfter(shadowJar)
+            inputFile = shadowJar.get().archiveFile
+            archiveClassifier = null
+        }
     }
 
     shadowJar {
@@ -120,6 +145,6 @@ tasks {
         }
         mergeServiceFiles()
 
-        finalizedBy(remapJar)
+        if (!platform.isUnobfuscated) finalizedBy("remapJar")
     }
 }
