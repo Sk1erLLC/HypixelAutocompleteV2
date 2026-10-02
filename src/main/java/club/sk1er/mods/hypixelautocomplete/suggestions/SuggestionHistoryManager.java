@@ -70,7 +70,7 @@ public class SuggestionHistoryManager {
             for (int i = startIndex; i < split.length; i++) {
                 captureUsername(split[i]);
             }
-        } else if (SuggestionService.getWhisperCommands().contains(split[0])) {
+        } else if (SuggestionService.getWhisperCommands().contains(split[0] + " ")) {
             // single-username command
             captureUsername(split[1]);
         }
