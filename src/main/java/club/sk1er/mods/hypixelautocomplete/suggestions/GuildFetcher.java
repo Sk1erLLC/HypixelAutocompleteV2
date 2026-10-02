@@ -68,7 +68,8 @@ public final class GuildFetcher {
         return connection;
     }
 
-    private static Set<String> parseMembers(String body) {
+    // Package-private so the parsing can be unit tested without a connection.
+    static Set<String> parseMembers(String body) {
         JsonArray members = getMembers(body);
         if (members == null) {
             return Set.of();
@@ -80,7 +81,7 @@ public final class GuildFetcher {
         return collected;
     }
 
-    private static JsonArray getMembers(String body) {
+    static JsonArray getMembers(String body) {
         try {
             JsonElement root = JsonParser.parseString(body);
             if (!root.isJsonObject()) {

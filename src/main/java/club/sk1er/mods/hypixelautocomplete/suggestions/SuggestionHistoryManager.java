@@ -11,7 +11,9 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -52,28 +54,40 @@ public class SuggestionHistoryManager {
     public void capture(String message) {
         logger.info("Captured message: {}", message);
 
+        for (String username : extractUsernames(message)) {
+            captureUsername(username);
+        }
+    }
+
+    /**
+     * Returns the usernames a sent message names, in order, if it's one of the tab complete commands.
+     * Kept free of game state so it can be unit tested.
+     */
+    static List<String> extractUsernames(String message) {
+        List<String> usernames = new ArrayList<>();
         String[] split = message.split(" ");
 
         if (split.length < 2) {
-            return;
+            return usernames;
         }
 
         if (SuggestionService.getPartyCommands().contains(split[0] + " ")) {
 
             // if command is a non-username party command (leave, disband, etc)
             if (SuggestionService.getPartyCommandsExcludeNoUser().contains(split[1])) {
-                return;
+                return usernames;
             }
 
             // if command has two non-user args (/p invite, /p transfer, etc)
             int startIndex = SuggestionService.getPartyCommandsExcludeUser().contains(split[1]) ? 2 : 1;
             for (int i = startIndex; i < split.length; i++) {
-                captureUsername(split[i]);
+                usernames.add(split[i]);
             }
-        } else if (SuggestionService.getWhisperCommands().contains(split[0])) {
+        } else if (SuggestionService.getWhisperCommands().contains(split[0] + " ")) {
             // single-username command
-            captureUsername(split[1]);
+            usernames.add(split[1]);
         }
+        return usernames;
     }
 
     /**
