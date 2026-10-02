@@ -1,0 +1,4 @@
+- Supports Minecraft 1.21.11, 26.1, 26.2 and 26.3 (Fabric)
+- Names you message with /msg, /tell, /w, /t, /whisper or /boop are now remembered for suggestions
+- New /delname command to remove names from the suggestion history
+- Names are saved with their proper Minecraft capitalization

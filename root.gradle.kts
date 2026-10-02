@@ -6,7 +6,7 @@ plugins {
     id("gg.essential.loom") version "1.15.50" apply false
 }
 
-version = "2.0-beta1"
+version = "2.0-beta2"
 
 preprocess {
     strictExtraMappings.set(true)
