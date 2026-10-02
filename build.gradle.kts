@@ -100,6 +100,9 @@ dependencies {
         else -> error("Unable to determine platform")
     }
     modLocalRuntime("me.djtheredstoner:DevAuth-${devAuthPlatform}:${if (platform.isUnobfuscated) "1.2.2" else "1.2.1"}")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
@@ -110,6 +113,10 @@ tasks {
 
         dependsOn(shadowJar)
         archiveClassifier = null
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     if (platform.isUnobfuscated) {
