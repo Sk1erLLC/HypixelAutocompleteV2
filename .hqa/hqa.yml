@@ -1,0 +1,16 @@
+version: 1
+mod: { id: hypixel_auto_complete }
+tests:
+  name-suggestions:
+    platforms: "fabric >=1.21.5"
+    server: { address: mc.hypixel.net }
+    goal: Join the test server. In chat, send a private message to the player Notch, then invite the players jeb_ and Dinnerbone to a party with /p invite. The server rejects these commands because those players aren't online; that's expected. Then, without sending anything, type each of the following into the chat box in turn and look at the suggestions shown above it each time - "/p invite " (with the trailing space), "/msg D", "/p " (the party command and a space), "/p invite jeb_ " (with the trailing space) and "/p leave " (with the trailing space).
+    pass: With "/p invite " typed, the suggestion list offers the names sent earlier (Notch, jeb_ and Dinnerbone); with "/msg D", Dinnerbone is offered; with "/p ", the list includes party subcommands such as invite and kick alongside those names; with "/p invite jeb_ ", Notch and Dinnerbone are offered but jeb_ is not offered again; and with "/p leave ", no player names are offered.
+    fail: No suggestion list appears for "/p invite " (for example only a red unknown or incomplete command message), the names sent earlier aren't offered, Dinnerbone isn't offered for "/msg D", "/p " offers no party subcommands, jeb_ is offered again after "/p invite jeb_ ", player names are offered after "/p leave ", or the game shows an error.
+    budget: { actions: 100, minutes: 15 }
+  delete-names:
+    platforms: "fabric >=1.21.5"
+    goal: In a singleplayer world, send the chat commands "/p invite Alpha_1 Beta_2" and "/msg Gamma_3 hi" (both fail there; that's expected). While still in that singleplayer world, type "/p invite " without sending it and look at what appears above the chat box. Then use the /delname command - type "/delname " and look at the suggestions; send "/delname Alpha_1"; send "/delname Nobody_9"; send "/delname Beta_2 Nobody_9"; then type "/delname " again and look at the suggestions.
+    pass: In singleplayer, "/p invite " offers none of those names (this autocomplete only works on Hypixel); the first "/delname " suggestions offer Alpha_1, Beta_2 and Gamma_3; the three /delname commands answer with a message that 1 username was removed, a message that no usernames were found, and a message that 1 username was removed and 1 was not found; and the last "/delname " suggestions offer only Gamma_3.
+    fail: Names are offered for "/p invite " in singleplayer, /delname is unknown or offers the wrong names, one of the replies is missing or says something else, Alpha_1 or Beta_2 is still offered at the end, or the game shows an error.
+    budget: { actions: 90, minutes: 14 }
