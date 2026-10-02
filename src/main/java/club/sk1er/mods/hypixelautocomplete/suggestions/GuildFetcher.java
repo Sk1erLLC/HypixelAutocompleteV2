@@ -1,5 +1,6 @@
 package club.sk1er.mods.hypixelautocomplete.suggestions;
 
+import club.sk1er.mods.hypixelautocomplete.HypixelAutoComplete;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -19,14 +20,18 @@ import java.util.UUID;
 
 public final class GuildFetcher {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
-    private static final String USER_AGENT = "Hypixel Auto Complete 2.0";
+    private static final String USER_AGENT = "Hypixel Auto Complete " + HypixelAutoComplete.MOD_VERSION;
     private static final String API_TEMPLATE = "https://api.sk1er.club/autocomplete/%s";
 
     private GuildFetcher() {
     }
 
     public static Set<String> fetch(MinecraftClient minecraft) {
+        //#if MC<=12107
         UUID uuid = minecraft.getGameProfile().getId();
+        //#else
+        //$$ UUID uuid = minecraft.getGameProfile().id();
+        //#endif
         HttpURLConnection connection = null;
         try {
             String format = String.format(API_TEMPLATE, uuid);
@@ -63,7 +68,8 @@ public final class GuildFetcher {
         return connection;
     }
 
-    private static Set<String> parseMembers(String body) {
+    // Package-private so the parsing can be unit tested without a connection.
+    static Set<String> parseMembers(String body) {
         JsonArray members = getMembers(body);
         if (members == null) {
             return Set.of();
@@ -75,7 +81,7 @@ public final class GuildFetcher {
         return collected;
     }
 
-    private static JsonArray getMembers(String body) {
+    static JsonArray getMembers(String body) {
         try {
             JsonElement root = JsonParser.parseString(body);
             if (!root.isJsonObject()) {

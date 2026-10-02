@@ -4,6 +4,8 @@
   "name": "Hypixel Autocomplete",
   "description": "Autocomplete for Hypixel chat commands.",
   "version": "${version}",
+  "license": "GPL-3.0",
+  "icon": "assets/hypixel_auto_complete/icon.png",
   "environment": "client",
   "mixins": [
     "mixins.hypixel_auto_complete.json"
@@ -16,5 +18,28 @@
     ],
     "modmenu": [
     ]
+  },
+  "contact": {
+    "homepage": "https://sk1er.club/mods/hypixel_auto_complete",
+    "sources": "https://github.com/Sk1erLLC/HypixelAutoCompleteV2",
+    "issues": "https://github.com/Sk1erLLC/HypixelAutoCompleteV2/issues"
+  },
+  "authors": [
+    {
+      "name": "Sk1er LLC",
+      "contact": {
+        "homepage": "https://sk1er.club"
+      }
+    },
+    {
+      "name":"Ilano1"
+    }
+  ],
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.website": "https://sk1er.club/mods/hypixel_auto_complete"
+      }
+    }
   }
 }

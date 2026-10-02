@@ -1,0 +1,50 @@
+version: 1
+mod: { id: hypixel_auto_complete }
+tests:
+  name-suggestions:
+    platforms: "fabric >=1.21.5"
+    server: { address: mc.hypixel.net }
+    web:
+      routes:
+        - url: https://api.sk1er.club/autocomplete/*
+          status: 500
+          json: { members: [Ghost_Member] }
+        - url: https://api.mojang.com/users/profiles/minecraft/*
+          status: 500
+          json: { errorMessage: "Internal server error" }
+    goal: Join the test server. In chat, send a private message to the player Notch, then invite the players jeb_ and Dinnerbone to a party with /p invite, then send "/p list" and the plain chat message "hello". The server rejects the commands because those players aren't online and it has no party system; that's expected. Then, without sending anything, type each of the following into the chat box in turn and look at the suggestions shown above it each time - "/p invite " (with the trailing space), "/msg D", "/p " (the party command and a space), "/p invite jeb_ " (with the trailing space) and "/p leave " (with the trailing space).
+    pass: With "/p invite " typed, the suggestion list offers the names sent earlier (Notch, jeb_ and Dinnerbone) and no other names (in particular not list or hello); with "/msg D", Dinnerbone is offered; with "/p ", the list includes party subcommands such as invite and kick alongside those names; with "/p invite jeb_ ", Notch and Dinnerbone are offered but jeb_ is not offered again; and with "/p leave ", no player names are offered. Ghost_Member is never offered.
+    fail: No suggestion list appears for "/p invite " (for example only a red unknown or incomplete command message), the names sent earlier aren't offered, list or hello is offered as a name for "/p invite ", Dinnerbone isn't offered for "/msg D", "/p " offers no party subcommands, jeb_ is offered again after "/p invite jeb_ ", player names are offered after "/p leave ", Ghost_Member is offered anywhere, or the game shows an error.
+    budget: { actions: 100, minutes: 15 }
+  delete-names:
+    platforms: "fabric >=1.21.5"
+    goal: In a singleplayer world, send the chat commands "/p invite Alpha_1 Beta_2" and "/msg Gamma_3 hi" (both fail there; that's expected). While still in that singleplayer world, type "/p invite " without sending it and look at what appears above the chat box. Then use the /delname command - type "/delname " and look at the suggestions; send "/delname Alpha_1"; send "/delname Nobody_9"; send "/delname Beta_2 Nobody_9"; then type "/delname " again and look at the suggestions.
+    pass: In singleplayer, "/p invite " offers none of those names (this autocomplete only works on Hypixel); the first "/delname " suggestions offer Alpha_1, Beta_2 and Gamma_3; the three /delname commands answer with a message that 1 username was removed, a message that no usernames were found, and a message that 1 username was removed and 1 was not found; and the last "/delname " suggestions offer only Gamma_3.
+    fail: Names are offered for "/p invite " in singleplayer, /delname is unknown or offers the wrong names, one of the replies is missing or says something else, Alpha_1 or Beta_2 is still offered at the end, or the game shows an error.
+    budget: { actions: 90, minutes: 14 }
+  guild-and-history:
+    platforms: "fabric >=1.21.5"
+    server: { address: mc.hypixel.net }
+    web:
+      routes:
+        - url: https://api.sk1er.club/autocomplete/*
+          json: { members: [GuildMaster, guildie_2] }
+        - url: https://api.mojang.com/users/profiles/minecraft/dinnerbone
+          json: { id: 61699b2ed3274a019f1e0ea8c3f06bc6, name: Dinnerbone }
+        - url: https://api.mojang.com/users/profiles/minecraft/*
+          status: 404
+          json: { errorMessage: "Couldn't find any profile with that name" }
+    files:
+      config/suggestionHistory.txt: "Technoblade 5\nSkyblock_Fan 2\nthis line is not a name and count\n"
+    goal: Join the test server. Before sending anything, open chat, type "/p invite " (with the trailing space) and look at the suggestions shown above the chat box. Then send "/msg dinnerbone hi" (all lowercase), "/msg qwerty_zz hi" and "/msg technoblade hi" (all lowercase again; the server rejects all three, which is expected) and wait a few seconds. Then, without sending, type each of the following in turn and look at the suggestions each time - "/msg Di", "/msg qw", "/msg te", "/msg Technoblade " (with a space after the name) and "/p invite zz".
+    pass: The first "/p invite " suggestions include GuildMaster and guildie_2 (guild members) and Technoblade and Skyblock_Fan (names remembered from before); "/msg Di" offers Dinnerbone spelled with a capital D; "/msg qw" offers qwerty_zz; "/msg te" offers Technoblade with a capital T, once, and no lowercase technoblade; and no player names are offered for "/msg Technoblade " or "/p invite zz".
+    fail: Any of GuildMaster, guildie_2, Technoblade or Skyblock_Fan is missing from the first "/p invite " list (for example only a red unknown or incomplete command message appears), "/msg Di" offers nothing or only the lowercase dinnerbone, "/msg qw" offers nothing, "/msg te" offers a lowercase technoblade or Technoblade twice, names are offered for "/msg Technoblade " or "/p invite zz", or the game shows an error.
+    budget: { actions: 100, minutes: 15 }
+  unreadable-history:
+    platforms: "fabric >=1.21.5"
+    files:
+      config/suggestionHistory.txt/placeholder: "A folder sits where the name history file belongs, so the mod can neither read nor save its history.\n"
+    goal: In a singleplayer world, send "/msg Zed_1 hi" (it fails there; that's expected). Then type "/delname " without sending it and look at the suggestions, send "/delname Zed_1", and type "/delname " again and look at the suggestions.
+    pass: The game keeps running normally; the first "/delname " suggestions offer Zed_1; "/delname Zed_1" answers that 1 username was removed; the last "/delname " suggestions don't offer Zed_1; and the game log reports that the name history file couldn't be read or saved (expected here, because a folder is in its place).
+    fail: The game crashes or shows an error screen, /delname is unknown, Zed_1 isn't offered the first time, the removal message is missing or different, Zed_1 is still offered at the end, or the log has no error about reading or saving the history file.
+    budget: { actions: 60, minutes: 10 }

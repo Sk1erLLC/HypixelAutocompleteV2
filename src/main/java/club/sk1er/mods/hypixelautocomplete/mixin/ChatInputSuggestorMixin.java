@@ -15,13 +15,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 
+//#if MC>=26.1
+//$$ import com.mojang.brigadier.ParseResults;
+//$$ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+//#endif
+
 @Mixin(ChatInputSuggestor.class)
 public abstract class ChatInputSuggestorMixin {
     @Shadow @Final MinecraftClient client;
     @Final @Shadow TextFieldWidget textField;
     @Shadow private CompletableFuture<Suggestions> pendingSuggestions;
 
+    // 26.1 replaced the no-arg updateUsageInfo() (yarn: showCommandSuggestions) with
+    // updateUsageInfo(ParseResults, Suggestions), called with the current parse and the completed suggestions.
+    //#if MC>=26.1
+    //$$ @Shadow private ParseResults<ClientSuggestionProvider> currentParse;
+    //$$ @Shadow protected abstract void updateUsageInfo(ParseResults<ClientSuggestionProvider> parse, Suggestions suggestions);
+    //#else
     @Shadow protected abstract void showCommandSuggestions();
+    //#endif
 
     @Inject(
         method = "refresh",
@@ -41,11 +53,19 @@ public abstract class ChatInputSuggestorMixin {
         }
 
         this.pendingSuggestions = suggestions;
+        //#if MC>=26.1
+        //$$ this.pendingSuggestions.thenAccept(result -> {
+        //$$     if (this.pendingSuggestions.isDone()) {
+        //$$         this.updateUsageInfo(this.currentParse, result);
+        //$$     }
+        //$$ });
+        //#else
         this.pendingSuggestions.thenRun(() -> {
             if (this.pendingSuggestions.isDone()) {
                 this.showCommandSuggestions();
             }
         });
+        //#endif
         ci.cancel();
     }
 }
