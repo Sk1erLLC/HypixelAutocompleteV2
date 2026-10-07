@@ -28,3 +28,6 @@ run
 .DS_Store
 Thumbs.db
 .vscode
+# sk1er.club deploy (deploy.py comes from the release tooling)
+deploy.py
+.deploy-token

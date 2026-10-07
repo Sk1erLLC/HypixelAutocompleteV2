@@ -50,8 +50,13 @@ public class SuggestionHistoryManager {
      * As a fun tangent we should also store the amount of times a given username has been sent
      * so we can add a little command to see who your best friends are.
      * purging users who have only been invited once?
+     * Only messages sent on Hypixel are looked at: on any other server or in singleplayer nothing is logged or saved.
      */
     public void capture(String message) {
+        if (!SuggestionService.isOnHypixel()) {
+            return;
+        }
+
         logger.info("Captured message: {}", message);
 
         for (String username : extractUsernames(message)) {

@@ -11,6 +11,8 @@
     "mixins.hypixel_auto_complete.json"
   ],
   "depends": {
+    "fabric-api-base": "*",
+    "fabric-command-api-v2": "*"
   },
   "entrypoints": {
     "main": [

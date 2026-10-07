@@ -18,10 +18,24 @@ tests:
     budget: { actions: 100, minutes: 15 }
   delete-names:
     platforms: "fabric >=1.21.5"
-    goal: In a singleplayer world, send the chat commands "/p invite Alpha_1 Beta_2" and "/msg Gamma_3 hi" (both fail there; that's expected). While still in that singleplayer world, type "/p invite " without sending it and look at what appears above the chat box. Then use the /delname command - type "/delname " and look at the suggestions; send "/delname Alpha_1"; send "/delname Nobody_9"; send "/delname Beta_2 Nobody_9"; then type "/delname " again and look at the suggestions.
-    pass: In singleplayer, "/p invite " offers none of those names (this autocomplete only works on Hypixel); the first "/delname " suggestions offer Alpha_1, Beta_2 and Gamma_3; the three /delname commands answer with a message that 1 username was removed, a message that no usernames were found, and a message that 1 username was removed and 1 was not found; and the last "/delname " suggestions offer only Gamma_3.
-    fail: Names are offered for "/p invite " in singleplayer, /delname is unknown or offers the wrong names, one of the replies is missing or says something else, Alpha_1 or Beta_2 is still offered at the end, or the game shows an error.
-    budget: { actions: 90, minutes: 14 }
+    server: { address: mc.hypixel.net }
+    web:
+      routes:
+        - url: https://api.sk1er.club/autocomplete/*
+          json: { members: [] }
+        - url: https://api.mojang.com/users/profiles/minecraft/*
+          status: 404
+          json: { errorMessage: "Couldn't find any profile with that name" }
+    goal: Join the test server. Send the chat commands "/p invite Alpha_1 Beta_2" and "/msg Gamma_3 hi" (the server rejects both; that's expected) and wait a few seconds. Then use the /delname command - type "/delname " and look at the suggestions; send "/delname Alpha_1"; send "/delname Nobody_9"; send "/delname Beta_2 Nobody_9"; then type "/delname " again and look at the suggestions.
+    pass: The first "/delname " suggestions offer Alpha_1, Beta_2 and Gamma_3; the three /delname commands answer with a message that 1 username was removed, a message that no usernames were found, and a message that 1 username was removed and 1 was not found; and the last "/delname " suggestions offer only Gamma_3.
+    fail: /delname is unknown or offers the wrong names, one of the replies is missing or says something else, Alpha_1 or Beta_2 is still offered at the end, or the game shows an error.
+    budget: { actions: 80, minutes: 13 }
+  hypixel-only:
+    platforms: "fabric >=1.21.5"
+    goal: In a singleplayer world, send the chat commands "/p invite Solo_4 Solo_5" and "/msg Solo_6 hi" (both fail there; that's expected) and wait a few seconds. Then, without sending anything, type "/p invite " and look at what appears above the chat box, then type "/delname " and look at the suggestions.
+    pass: With "/p invite " typed, no player names are offered (this autocomplete only works on Hypixel), and the "/delname " suggestions offer none of Solo_4, Solo_5 or Solo_6, because names sent outside Hypixel are not remembered.
+    fail: Any player name is offered for "/p invite ", any of Solo_4, Solo_5 or Solo_6 is offered for "/delname ", /delname is unknown, or the game shows an error.
+    budget: { actions: 60, minutes: 10 }
   guild-and-history:
     platforms: "fabric >=1.21.5"
     server: { address: mc.hypixel.net }
@@ -42,9 +56,17 @@ tests:
     budget: { actions: 100, minutes: 15 }
   unreadable-history:
     platforms: "fabric >=1.21.5"
+    server: { address: mc.hypixel.net }
+    web:
+      routes:
+        - url: https://api.sk1er.club/autocomplete/*
+          json: { members: [] }
+        - url: https://api.mojang.com/users/profiles/minecraft/*
+          status: 404
+          json: { errorMessage: "Couldn't find any profile with that name" }
     files:
       config/suggestionHistory.txt/placeholder: "A folder sits where the name history file belongs, so the mod can neither read nor save its history.\n"
-    goal: In a singleplayer world, send "/msg Zed_1 hi" (it fails there; that's expected). Then type "/delname " without sending it and look at the suggestions, send "/delname Zed_1", and type "/delname " again and look at the suggestions.
+    goal: Join the test server. Send "/msg Zed_1 hi" (the server rejects it; that's expected) and wait a few seconds. Then type "/delname " without sending it and look at the suggestions, send "/delname Zed_1", and type "/delname " again and look at the suggestions.
     pass: The game keeps running normally; the first "/delname " suggestions offer Zed_1; "/delname Zed_1" answers that 1 username was removed; the last "/delname " suggestions don't offer Zed_1; and the game log reports that the name history file couldn't be read or saved (expected here, because a folder is in its place).
     fail: The game crashes or shows an error screen, /delname is unknown, Zed_1 isn't offered the first time, the removal message is missing or different, Zed_1 is still offered at the end, or the log has no error about reading or saving the history file.
     budget: { actions: 60, minutes: 10 }

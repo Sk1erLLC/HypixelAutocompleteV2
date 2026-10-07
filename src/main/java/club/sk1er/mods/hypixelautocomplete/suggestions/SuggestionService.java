@@ -86,7 +86,7 @@ public class SuggestionService {
     }
 
     public CompletableFuture<Suggestions> buildSuggestions(String input, int cursor) {
-        if (!isHypixel()) {
+        if (!isOnHypixel()) {
             return null;
         }
 
@@ -209,12 +209,25 @@ public class SuggestionService {
             .thenAccept(members -> logger.log(Level.DEBUG, "Fetched {} guild members", guildMembers.get().size()));
     }
 
-    private boolean isHypixel() {
+    /**
+     * Whether the player is connected to Hypixel, judged by the address of the server they joined.
+     */
+    public static boolean isOnHypixel() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.getCurrentServerEntry() == null) {
             return false;
         }
-        String address = client.getCurrentServerEntry().address.toLowerCase();
-        return address.contains("hypixel.net") || address.equals("hypixel");
+        return isHypixelAddress(client.getCurrentServerEntry().address);
+    }
+
+    /**
+     * Whether a server address is Hypixel's. Kept free of game state so it can be unit tested.
+     */
+    static boolean isHypixelAddress(String address) {
+        if (address == null) {
+            return false;
+        }
+        String lowercase = address.toLowerCase();
+        return lowercase.contains("hypixel.net") || lowercase.equals("hypixel");
     }
 }

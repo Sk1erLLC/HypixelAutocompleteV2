@@ -27,7 +27,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.arg
 //#endif
 public class HypixelAutoComplete implements ModInitializer {
     public static final String MOD_ID = "hypixel_auto_complete";
-    public static final String MOD_VERSION = "2.0-beta1";
+    public static final String MOD_VERSION = "2.0";
     public static final String MOD_NAME = "Hypixel Autocomplete";
 
     private final SuggestionService suggestionService = new SuggestionService();
